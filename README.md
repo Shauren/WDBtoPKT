@@ -22,4 +22,4 @@ cmake ..
 
 Because this tool produces a PKT file to be parsed with WowPacketParser only a handful of client patches are supported
 
-Current list includes all of `9.0.1`, `9.0.2`, `9.0.5`, `9.1.0`, `9.1.5`
+Current list includes all of `9.0.1`, `9.0.2`, `9.0.5`, `9.1.0`, `9.1.5`, `9.2.0`
