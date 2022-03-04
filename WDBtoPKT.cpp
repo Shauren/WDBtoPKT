@@ -150,6 +150,10 @@ std::uint32_t GetOpcodeValue(std::array<char, 4> wdbMagic, std::uint32_t build)
         // 9.2.0
         case 42423:
         case 42488:
+        case 42521:
+        case 42538:
+        case 42560:
+        case 42578:
             if (wdbMagic == std::array{ 'B', 'O', 'M', 'W' })
                 return 0x2914; // SMSG_QUERY_CREATURE_RESPONSE
             else if (wdbMagic == std::array{ 'B', 'O', 'G', 'W' })
