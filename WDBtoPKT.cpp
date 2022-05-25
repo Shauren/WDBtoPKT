@@ -157,6 +157,12 @@ std::uint32_t GetOpcodeValue(std::array<char, 4> wdbMagic, std::uint32_t build)
         case 42614:
         case 42698:
         case 42852:
+        case 42937:
+        case 42979:
+        case 43114:
+        case 43206:
+        case 43340:
+        case 43345:
             if (wdbMagic == std::array{ 'B', 'O', 'M', 'W' })
                 return 0x2914; // SMSG_QUERY_CREATURE_RESPONSE
             else if (wdbMagic == std::array{ 'B', 'O', 'G', 'W' })
@@ -254,9 +260,9 @@ int main(int argc, char const* argv[])
 
         fread(data.contents(), size, 1, inFile);
 
-        ByteBuffer pkt;
         try
         {
+            ByteBuffer pkt;
             std::size_t processedRecords = ProcessWDB(data, pkt);
             if (processedRecords > 0)
             {
