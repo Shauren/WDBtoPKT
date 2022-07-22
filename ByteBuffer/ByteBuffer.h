@@ -15,8 +15,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _BYTEBUFFER_H
-#define _BYTEBUFFER_H
+#ifndef TRINITY_BYTEBUFFER_H
+#define TRINITY_BYTEBUFFER_H
 
 #include <array>
 #include <string>

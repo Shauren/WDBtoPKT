@@ -16,9 +16,10 @@
  */
 
 #include "ByteBuffer.h"
-#include <fmt/core.h>
 #include <sstream>
 #include <ctime>
+
+using namespace std::string_literals;
 
 ByteBufferPositionException::ByteBufferPositionException(std::size_t pos, std::size_t size, std::size_t valueSize)
 {
@@ -33,7 +34,7 @@ ByteBufferPositionException::ByteBufferPositionException(std::size_t pos, std::s
 
 ByteBufferInvalidValueException::ByteBufferInvalidValueException(char const* type, char const* value)
 {
-    message().assign(fmt::format("Invalid {} value ({}) found in ByteBuffer", type, value));
+    message().assign("Invalid {} value ({}) found in ByteBuffer"s + type + value);
 }
 
 ByteBuffer& ByteBuffer::operator>>(float& value)

@@ -1,12 +1,11 @@
 ﻿
 #include "ByteBuffer/ByteBuffer.h"
-#include <fmt/core.h>
 #include <array>
 #include <filesystem>
 #include <stdexcept>
 #include <cstdio>
 
-using namespace fmt::literals;
+using namespace std::string_literals;
 
 #pragma pack(push, 1)
 
@@ -50,134 +49,26 @@ namespace PKT
 
 #pragma pack(pop)
 
-std::uint32_t GetOpcodeValue(std::array<char, 4> wdbMagic, std::uint32_t build)
+std::uint32_t GetOpcodeValueFromWPP(std::array<char, 4> wdbMagic)
 {
-    switch (build)
-    {
-        // 9.0.1
-        case 36216:
-        case 36228:
-        case 36230:
-        case 36247:
-        case 36272:
-        case 36322:
-        case 36372:
-        case 36492:
-        case 36577:
-        // 9.0.2
-        case 36639:
-        case 36665:
-        case 36671:
-        case 36710:
-        case 36734:
-        case 36751:
-        case 36753:
-        case 36839:
-        case 36949:
-        case 37106:
-        case 37142:
-        case 37176:
-        case 37474:
-            if (wdbMagic == std::array{ 'B', 'O', 'M', 'W' })
-                return 0x26CE; // SMSG_QUERY_CREATURE_RESPONSE
-            else if (wdbMagic == std::array{ 'B', 'O', 'G', 'W' })
-                return 0x26CF; // SMSG_QUERY_GAME_OBJECT_RESPONSE
-            else if (wdbMagic == std::array{ 'C', 'P', 'N', 'W' })
-                return 0x26D2; // SMSG_QUERY_NPC_TEXT_RESPONSE
-            else if (wdbMagic == std::array{ 'X', 'T', 'P', 'W' })
-                return 0x26D3; // SMSG_QUERY_PAGE_TEXT_RESPONSE
-            else if (wdbMagic == std::array{ 'T', 'S', 'Q', 'W' })
-                return 0x2A95; // SMSG_QUERY_QUEST_INFO_RESPONSE
-            else
-                throw std::invalid_argument(fmt::format("Unsupported WDB header {}{}{}{}", wdbMagic[0], wdbMagic[1], wdbMagic[2], wdbMagic[3]));
-        // 9.0.5
-        case 37503:
-        case 37862:
-        case 37864:
-        case 37893:
-        case 37899:
-        case 37988:
-        case 38134:
-        case 38556:
-            if (wdbMagic == std::array{ 'B', 'O', 'M', 'W' })
-                return 0x26CE; // SMSG_QUERY_CREATURE_RESPONSE
-            else if (wdbMagic == std::array{ 'B', 'O', 'G', 'W' })
-                return 0x26CF; // SMSG_QUERY_GAME_OBJECT_RESPONSE
-            else if (wdbMagic == std::array{ 'C', 'P', 'N', 'W' })
-                return 0x26D2; // SMSG_QUERY_NPC_TEXT_RESPONSE
-            else if (wdbMagic == std::array{ 'X', 'T', 'P', 'W' })
-                return 0x26D3; // SMSG_QUERY_PAGE_TEXT_RESPONSE
-            else if (wdbMagic == std::array{ 'T', 'S', 'Q', 'W' })
-                return 0x2A96; // SMSG_QUERY_QUEST_INFO_RESPONSE
-            else
-                throw std::invalid_argument(fmt::format("Unsupported WDB header {}{}{}{}", wdbMagic[0], wdbMagic[1], wdbMagic[2], wdbMagic[3]));
-        // 9.1.0
-        case 39185:
-        case 39226:
-        case 39229:
-        case 39262:
-        case 39282:
-        case 39289:
-        case 39291:
-        case 39318:
-        case 39335:
-        case 39427:
-        case 39497:
-        case 39498:
-        case 39584:
-        case 39617:
-        case 39653:
-        case 39804:
-        case 40000:
-        case 40120:
-        case 40443:
-        case 40593:
-        case 40725:
-        // 9.1.5
-        case 40772:
-        case 40871:
-        case 40906:
-        case 40944:
-        case 40966:
-        case 41031:
-        case 41079:
-        case 41288:
-        case 41323:
-        case 41359:
-        case 41488:
-        case 41793:
-        case 42010:
-        // 9.2.0
-        case 42423:
-        case 42488:
-        case 42521:
-        case 42538:
-        case 42560:
-        case 42578:
-        case 42614:
-        case 42698:
-        case 42852:
-        case 42937:
-        case 42979:
-        case 43114:
-        case 43206:
-        case 43340:
-        case 43345:
-            if (wdbMagic == std::array{ 'B', 'O', 'M', 'W' })
-                return 0x2914; // SMSG_QUERY_CREATURE_RESPONSE
-            else if (wdbMagic == std::array{ 'B', 'O', 'G', 'W' })
-                return 0x2915; // SMSG_QUERY_GAME_OBJECT_RESPONSE
-            else if (wdbMagic == std::array{ 'C', 'P', 'N', 'W' })
-                return 0x2916; // SMSG_QUERY_NPC_TEXT_RESPONSE
-            else if (wdbMagic == std::array{ 'X', 'T', 'P', 'W' })
-                return 0x2917; // SMSG_QUERY_PAGE_TEXT_RESPONSE
-            else if (wdbMagic == std::array{ 'T', 'S', 'Q', 'W' })
-                return 0x2A96; // SMSG_QUERY_QUEST_INFO_RESPONSE
-            else
-                throw std::invalid_argument(fmt::format("Unsupported WDB header {}{}{}{}", wdbMagic[0], wdbMagic[1], wdbMagic[2], wdbMagic[3]));
-        default:
-            throw std::invalid_argument(fmt::format("Unsupported client build {}", build));
-    }
+    using namespace WowPacketParser::Enums;
+
+    Opcode opcode{};
+
+    if (wdbMagic == std::array{ 'B', 'O', 'M', 'W' })
+        opcode = Opcode::SMSG_QUERY_CREATURE_RESPONSE;
+    else if (wdbMagic == std::array{ 'B', 'O', 'G', 'W' })
+        opcode = Opcode::SMSG_QUERY_GAME_OBJECT_RESPONSE;
+    else if (wdbMagic == std::array{ 'C', 'P', 'N', 'W' })
+        opcode = Opcode::SMSG_QUERY_NPC_TEXT_RESPONSE;
+    else if (wdbMagic == std::array{ 'X', 'T', 'P', 'W' })
+        opcode = Opcode::SMSG_QUERY_PAGE_TEXT_RESPONSE;
+    else if (wdbMagic == std::array{ 'T', 'S', 'Q', 'W' })
+        opcode = Opcode::SMSG_QUERY_QUEST_INFO_RESPONSE;
+    else
+        throw std::invalid_argument("Unsupported WDB header "s + wdbMagic[0] + wdbMagic[1] + wdbMagic[2] + wdbMagic[3]);
+
+    return Version::Opcodes::GetOpcode(opcode, Direction::ServerToClient);
 }
 
 void ProcessWDBRecord(ByteBuffer& wdb, std::array<char, 4> wdbMagic, std::uint32_t build, std::int32_t id, std::uint32_t recordSize, ByteBuffer& pkt)
@@ -191,7 +82,7 @@ void ProcessWDBRecord(ByteBuffer& wdb, std::array<char, 4> wdbMagic, std::uint32
 
     std::size_t pktPos = pkt.wpos();
 
-    pkt.append<std::uint32_t>(GetOpcodeValue(wdbMagic, build));
+    pkt.append<std::uint32_t>(GetOpcodeValueFromWPP(wdbMagic));
 
     pkt.append<std::int32_t>(id);
     if (wdbMagic == std::array{ 'B', 'O', 'G', 'W' })
@@ -223,6 +114,8 @@ std::size_t ProcessWDB(ByteBuffer& wdb, ByteBuffer& pkt)
     wdb >> header.RecordVersion;
     wdb >> header.CacheVersion;
 
+    WowPacketParser::Misc::ClientVersion::SetVersion(WowPacketParser::Enums::ClientVersionBuild(header.Build));
+
     PKT::FileHeader pktHeader;
     pktHeader.Build = header.Build;
     std::reverse_copy(header.Locale.begin(), header.Locale.end(), pktHeader.Locale.begin());
@@ -245,42 +138,57 @@ std::size_t ProcessWDB(ByteBuffer& wdb, ByteBuffer& pkt)
     return processedRecords;
 }
 
-int main(int argc, char const* argv[])
+namespace WDBtoPKT
 {
-    for (int i = 1; i < argc; ++i)
+public ref class WDBtoPKT
+{
+public:
+    static void Run(array<System::String^>^ args)
     {
-        FILE* inFile = nullptr;
-        if (fopen_s(&inFile, argv[i], "rb") || !inFile)
-            continue;
-
-        std::filesystem::path inPath(argv[i]);
-        std::uintmax_t size = std::filesystem::file_size(inPath);
-
-        ByteBuffer data(size, ByteBuffer::Resize{ });
-
-        fread(data.contents(), size, 1, inFile);
-
-        try
+        for (int i = 0; i < args->Length; ++i)
         {
-            ByteBuffer pkt;
-            std::size_t processedRecords = ProcessWDB(data, pkt);
-            if (processedRecords > 0)
+            FILE* inFile = nullptr;
+            std::string inPathString;
+            System::IntPtr ptr = System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(args[i]);
+            try
             {
-                FILE* out = nullptr;
-                if (!fopen_s(&out, inPath.replace_filename(inPath.filename().replace_extension("pkt")).string().c_str(), "wb") && out)
+                inPathString = static_cast<char const*>(ptr.ToPointer());
+            }
+            finally
+            {
+                System::Runtime::InteropServices::Marshal::FreeHGlobal(ptr);
+            }
+            if (fopen_s(&inFile, inPathString.c_str(), "rb") || !inFile)
+                continue;
+
+            std::filesystem::path inPath(inPathString);
+            std::uintmax_t size = std::filesystem::file_size(inPath);
+
+            ByteBuffer data(size, ByteBuffer::Resize{ });
+
+            fread(data.contents(), size, 1, inFile);
+
+            try
+            {
+                ByteBuffer pkt;
+                std::size_t processedRecords = ProcessWDB(data, pkt);
+                if (processedRecords > 0)
                 {
-                    fwrite(pkt.contents(), pkt.size(), 1, out);
-                    fclose(out);
+                    FILE* out = nullptr;
+                    if (!fopen_s(&out, inPath.replace_filename(inPath.filename().replace_extension("pkt")).string().c_str(), "wb") && out)
+                    {
+                        fwrite(pkt.contents(), pkt.size(), 1, out);
+                        fclose(out);
+                    }
                 }
             }
-        }
-        catch (std::exception const& ex)
-        {
-            fmt::print("Caught exception when processing {path}: {exception}", fmt::arg("path", inPath.filename().string()), fmt::arg("exception", ex.what()));
-        }
+            catch (std::exception const& ex)
+            {
+                printf("Caught exception when processing %s: %s", inPath.filename().string().c_str(), ex.what());
+            }
 
-        fclose(inFile);
+            fclose(inFile);
+        }
     }
-
-    return 0;
+};
 }
