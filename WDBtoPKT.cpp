@@ -1,5 +1,6 @@
 ﻿
 #include "ByteBuffer/ByteBuffer.h"
+#include <msclr/marshal_cppstd.h>
 #include <array>
 #include <filesystem>
 #include <stdexcept>
@@ -148,16 +149,7 @@ public:
         for (int i = 0; i < args->Length; ++i)
         {
             FILE* inFile = nullptr;
-            std::string inPathString;
-            System::IntPtr ptr = System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(args[i]);
-            try
-            {
-                inPathString = static_cast<char const*>(ptr.ToPointer());
-            }
-            finally
-            {
-                System::Runtime::InteropServices::Marshal::FreeHGlobal(ptr);
-            }
+            std::string inPathString = msclr::interop::marshal_as<std::string>(args[i]->ToString());
             if (fopen_s(&inFile, inPathString.c_str(), "rb") || !inFile)
                 continue;
 
