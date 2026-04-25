@@ -38,6 +38,21 @@ namespace PKT
         std::uint32_t OptionalDataSize = 0;
     };
 
+    ByteBuffer& operator<<(ByteBuffer& data, FileHeader const& header)
+    {
+        data.append(header.Signature);
+        data << header.FormatVersion;
+        data << header.SnifferId;
+        data << header.Build;
+        data.append(header.Locale);
+        data.append(header.SessionKey);
+        data << header.SniffStartUnixtime;
+        data << header.SniffStartTicks;
+        data << header.OptionalDataSize;
+
+        return data;
+    }
+
     struct PacketHeader
     {
         std::uint32_t Direction = 0x47534d53;
@@ -46,6 +61,16 @@ namespace PKT
         std::uint32_t OptionalDataSize = 0;
         std::uint32_t Length = 0;
     };
+
+    ByteBuffer& operator<<(ByteBuffer& data, PacketHeader const& header)
+    {
+        data << header.Direction;
+        data << header.ConnectionId;
+        data << header.ArrivalTicks;
+        data << header.OptionalDataSize;
+        data << header.Length;
+        return data;
+    }
 }
 
 #pragma pack(pop)
@@ -79,7 +104,7 @@ void ProcessWDBRecord(ByteBuffer& wdb, std::array<char, 4> wdbMagic, std::uint32
     // create a wrapper packet
     std::size_t headerPos = pkt.wpos();
 
-    pkt.append(header);
+    pkt << header;
 
     std::size_t pktPos = pkt.wpos();
 
@@ -99,10 +124,10 @@ void ProcessWDBRecord(ByteBuffer& wdb, std::array<char, 4> wdbMagic, std::uint32
     else if (wdbMagic == std::array{ 'X', 'T', 'P', 'W' })
         pkt.append<std::uint32_t>(1); // page count
 
-    pkt.append(wdb.contents() + wdb.rpos(), recordSize);
+    pkt.append(wdb.data() + wdb.rpos(), recordSize);
     wdb.rpos(wdb.rpos() + recordSize);
 
-    reinterpret_cast<PKT::PacketHeader*>(pkt.contents() + headerPos)->Length = static_cast<std::uint32_t>(pkt.wpos() - pktPos);
+    reinterpret_cast<PKT::PacketHeader*>(pkt.data() + headerPos)->Length = static_cast<std::uint32_t>(pkt.wpos() - pktPos);
 }
 
 std::size_t ProcessWDB(ByteBuffer& wdb, ByteBuffer& pkt)
@@ -121,7 +146,7 @@ std::size_t ProcessWDB(ByteBuffer& wdb, ByteBuffer& pkt)
     pktHeader.Build = header.Build;
     std::reverse_copy(header.Locale.begin(), header.Locale.end(), pktHeader.Locale.begin());
 
-    pkt.append(pktHeader);
+    pkt << pktHeader;
 
     std::size_t processedRecords = 0;
 
@@ -146,6 +171,8 @@ public ref class WDBtoPKT
 public:
     static void Run(array<System::String^>^ args)
     {
+        WowPacketParser::Program::SetUpConsole();
+
         for (int i = 0; i < args->Length; ++i)
         {
             FILE* inFile = nullptr;
@@ -158,7 +185,7 @@ public:
 
             ByteBuffer data(size, ByteBuffer::Resize{ });
 
-            fread(data.contents(), size, 1, inFile);
+            fread(data.data(), size, 1, inFile);
 
             try
             {
@@ -169,7 +196,7 @@ public:
                     FILE* out = nullptr;
                     if (!fopen_s(&out, inPath.replace_filename(inPath.filename().replace_extension("pkt")).string().c_str(), "wb") && out)
                     {
-                        fwrite(pkt.contents(), pkt.size(), 1, out);
+                        fwrite(pkt.data(), pkt.size(), 1, out);
                         fclose(out);
                     }
                 }

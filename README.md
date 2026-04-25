@@ -6,9 +6,9 @@ Convert a WDB file to PKT that can be later parsed with [WowPacketParser](https:
 
 ### Requirements
 
-* CMake 3.22
-* Visual Studio 2022
-* .NET 6.0 SDK
+* CMake 3.24
+* Visual Studio 2026
+* .NET 10.0 SDK
 
 ```
 mkdir build
@@ -23,4 +23,4 @@ cmake ..
 
 Because this tool produces a PKT file to be parsed with WowPacketParser only a handful of client patches are supported
 
-Current list includes all of `9.x`
+Current list includes all of `9.x`, `10.x`, `11.x` and `12.x`
